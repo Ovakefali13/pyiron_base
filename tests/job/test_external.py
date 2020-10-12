@@ -38,3 +38,6 @@ class TestScriptJob(unittest.TestCase):
             self.job.run()
         except Exception as e:
             self.fail("Running script job failed with {}".format(e))
+
+if __name__ == "__main__":
+    unittest.main()
