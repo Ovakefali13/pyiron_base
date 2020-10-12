@@ -28,3 +28,7 @@ class TestScriptJob(unittest.TestCase):
         self.job.save()
         self.assertTrue("custom_dict" in self.job["input"].list_groups(),
                         "Input not saved in the 'custom_dict' group in HDF")
+
+
+if __name__ == "__main__":
+    unittest.main()
