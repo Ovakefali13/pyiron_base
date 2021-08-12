@@ -11,6 +11,7 @@ import os
 
 import posixpath
 import multiprocessing
+from pyiron_base.generic.datacontainer import DataContainer
 from pyiron_base.job.wrapper import JobWrapper
 from pyiron_base.settings.generic import Settings
 from pyiron_base.job.executable import Executable
@@ -155,10 +156,12 @@ class GenericJob(JobCore):
         super(GenericJob, self).__init__(project, job_name)
         self.__name__ = type(self).__name__
         self.__version__ = "0.4"
-        self.__hdf_version__ = "0.1.0"
+        self.__hdf_version__ = "0.2.0"
         self._server = Server()
         self._logger = s.logger
         self._executable = None
+        self._input = DataContainer(table_name='input')
+        self._output = DataContainer(table_name='output')
         self._status = JobStatus(db=project.db, job_id=self.job_id)
         self.refresh_job_status()
         self._restart_file_list = list()
@@ -173,6 +176,22 @@ class GenericJob(JobCore):
 
         for sig in intercepted_signals:
             signal.signal(sig, self.signal_intercept)
+
+    @property
+    def input(self):
+        return self._input
+
+    @input.setter
+    def input(self, val):
+        self._input = val
+
+    @property
+    def output(self):
+        return self._output
+
+    @output.setter
+    def output(self, val):
+        self._output = val
 
     @property
     def version(self):
@@ -1109,6 +1128,7 @@ class GenericJob(JobCore):
                 "exclude_groups_hdf": self._exclude_groups_hdf,
             }
             hdf_input["generic_dict"] = generic_dict
+            self._input.to_hdf(hdf_input)
 
     @classmethod
     def from_hdf_args(cls, hdf):
@@ -1142,6 +1162,7 @@ class GenericJob(JobCore):
             self._import_directory = self._hdf5["import_directory"]
         self._server.from_hdf(self._hdf5)
         with self._hdf5.open("input") as hdf_input:
+            self._input.to_hdf(hdf_input)
             if "generic_dict" in hdf_input.list_nodes():
                 generic_dict = hdf_input["generic_dict"]
                 self._restart_file_list = generic_dict["restart_file_list"]
